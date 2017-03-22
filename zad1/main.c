@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include <sys/types.h>
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <string.h>
@@ -45,11 +44,17 @@ void execute_command(char* cmd){
         printf("Running at PID: %d\n", pid);
         int status = 0;
         waitpid(pid, &status, 0);
-        while (!WIFEXITED(status)) {
+
+        while (WIFSTOPPED(status) || WIFCONTINUED(status))
             waitpid(pid, &status, 0);
+
+        if (WIFSIGNALED(status)){
+            fprintf(stderr, "Command `%s` has been terminated by signal %d\n", cmd, WTERMSIG(status));
+            exit(EXIT_FAILURE);
         }
         if (WEXITSTATUS(status) != 0){
             fprintf(stderr, "Command `%s` exited with status code %d\n", cmd, WEXITSTATUS(status));
+            exit(WEXITSTATUS(status));
         }
     }
 
