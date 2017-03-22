@@ -1,3 +1,5 @@
-ls -l
-#envtest test
-grep | "multisync"
+pwd
+ls -la
+#ENVSETTEST tojesttest
+printenv
+./cmake-build-debug/envget ENVSETTEST

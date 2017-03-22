@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
-#define MAX_COMMAND_SIZE 256
+#define MAX_ARGUMENT_COUNT 32
 
 void execute_command(char* cmd){
     __pid_t pid = fork();
@@ -19,14 +19,38 @@ void execute_command(char* cmd){
     }
     if (pid == 0){
         printf("Executing command: %s\n", cmd);
+        //parsing arguments
+        char** args = calloc(MAX_ARGUMENT_COUNT, sizeof(char*));
+        int curr_args = 1;
+
+        args[0] = strtok(cmd, " ");
+        char *cmd_curr;
+        while ((cmd_curr = strtok(NULL, " "))){
+            args[curr_args] = cmd_curr;
+            curr_args++;
+            if (curr_args >= MAX_ARGUMENT_COUNT)
+            {
+                fprintf(stderr, "Max expression argument count size exceeded.\n");
+                exit(EXIT_FAILURE);
+            }
+        }
+
+        if (execvp(args[0], args) == -1){
+            fprintf(stderr, "Could not have executed %s: %s\n", args[0], strerror(errno));
+        }
+
         _exit(EXIT_SUCCESS);
     }
     else {
         printf("Running at PID: %d\n", pid);
         int status = 0;
         waitpid(pid, &status, 0);
-        printf("Command done with exit code %d.\n", status);
-
+        while (!WIFEXITED(status)) {
+            waitpid(pid, &status, 0);
+        }
+        if (WEXITSTATUS(status) != 0){
+            fprintf(stderr, "Command `%s` exited with status code %d\n", cmd, WEXITSTATUS(status));
+        }
     }
 
 }
@@ -42,7 +66,7 @@ void execute_env_command(char* cmd){
     }
     else {
         //delete the env var
-        printf("Deleteing environment variable `%s`\n", env_name);
+        printf("Deleting environment variable `%s`\n", env_name);
         unsetenv(env_name);
     }
 }

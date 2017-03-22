@@ -4,3 +4,4 @@ project(zad1)
 set(CMAKE_C_FLAGS "--std=gnu99 -Wall ${CMAKE_C_FLAGS}")
 
 add_executable(zad1 main.c)
+add_executable(envget envget.c)
