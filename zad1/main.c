@@ -11,6 +11,7 @@
 #define MAX_ARGUMENT_COUNT 32
 
 void execute_command(char* cmd){
+    if (strlen(cmd) == 0) return;
     __pid_t pid = fork();
     if (pid == -1){
         fprintf(stderr, "Could not have forked process: %s\n", strerror(errno));
@@ -61,7 +62,7 @@ void execute_command(char* cmd){
 }
 
 void execute_env_command(char* cmd){
-
+    if (strlen(cmd) == 0) return;
     char *env_name = strtok(cmd, " ");
     char *env_param = strtok(NULL, " ");
     if (env_param != NULL){
