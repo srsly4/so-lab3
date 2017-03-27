@@ -1,4 +1,4 @@
 pwd
 ls -la
 #ENVSETTEST tojesttest
-./trash
+./trash-prog

@@ -47,7 +47,6 @@ void execute_command(char* cmd){
         {
             vmem_res.rlim_max = vmemlimit;
             vmem_res.rlim_cur = vmemlimit;
-            printf("Hard RLIMIT_AS set to %d", (int)vmem_res.rlim_max);
             if (setrlimit(RLIMIT_AS, &vmem_res) == -1)
             {
                 fprintf(stderr, "Could not set vmem limit: %s\n", strerror(errno));
@@ -58,13 +57,14 @@ void execute_command(char* cmd){
         {
             cpu_res.rlim_max = cpulimit;
             cpu_res.rlim_cur = cpulimit;
-            printf("Hard RLIMIT_CPU set to %d", (int)cpu_res.rlim_max);
             if (setrlimit(RLIMIT_CPU, &cpu_res) == -1)
             {
                 fprintf(stderr, "Could not set vmem limit: %s\n", strerror(errno));
                 _exit(EXIT_FAILURE);
             }
         }
+
+        printf("[r_cpu: %ds, r_as: %d bytes]\n", (int)cpu_res.rlim_max, (int)vmem_res.rlim_max);
 
         if (execvp(args[0], args) == -1){
             fprintf(stderr, "Could not have executed %s: %s\n", args[0], strerror(errno));
