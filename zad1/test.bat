@@ -5,5 +5,5 @@ ls -la
 
 #ENVSETTEST tojesttest
 printenv
-./cmake-build-debug/envget ENVSETTEST
+./envget ENVSETTEST
 find /home/sirius/python -type f -exec md5sum {} +
