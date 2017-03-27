@@ -42,13 +42,33 @@ void execute_command(char* cmd){
         struct rlimit vmem_res, cpu_res;
         getrlimit(RLIMIT_AS, &vmem_res);
         getrlimit(RLIMIT_CPU, &cpu_res);
-        vmem_res.rlim_cur = vmemlimit > vmem_res.rlim_cur && vmem_res.rlim_cur > 0 ? vmem_res.rlim_cur : vmemlimit;
-        cpu_res.rlim_cur = cpulimit > cpu_res.rlim_cur && vmem_res.rlim_cur > 0 ? cpu_res.rlim_cur : cpulimit;
-        setrlimit(RLIMIT_AS, &vmem_res);
-        setrlimit(RLIMIT_CPU, &cpu_res);
+
+        if (vmemlimit < vmem_res.rlim_max)
+        {
+            vmem_res.rlim_max = vmemlimit;
+            vmem_res.rlim_cur = vmemlimit;
+            printf("Hard RLIMIT_AS set to %d", (int)vmem_res.rlim_max);
+            if (setrlimit(RLIMIT_AS, &vmem_res) == -1)
+            {
+                fprintf(stderr, "Could not set vmem limit: %s\n", strerror(errno));
+                _exit(EXIT_FAILURE);
+            }
+        }
+        if (cpulimit < cpu_res.rlim_max)
+        {
+            cpu_res.rlim_max = cpulimit;
+            cpu_res.rlim_cur = cpulimit;
+            printf("Hard RLIMIT_CPU set to %d", (int)cpu_res.rlim_max);
+            if (setrlimit(RLIMIT_CPU, &cpu_res) == -1)
+            {
+                fprintf(stderr, "Could not set vmem limit: %s\n", strerror(errno));
+                _exit(EXIT_FAILURE);
+            }
+        }
 
         if (execvp(args[0], args) == -1){
             fprintf(stderr, "Could not have executed %s: %s\n", args[0], strerror(errno));
+
         }
 
         _exit(EXIT_SUCCESS);
@@ -56,9 +76,10 @@ void execute_command(char* cmd){
     else {
         printf("Running at PID: %d\n", pid);
         int status = 0;
-        waitpid(pid, &status, 0);
         struct rusage r_start, r_end;
         getrusage(RUSAGE_CHILDREN, &r_start);
+
+        waitpid(pid, &status, 0);
         while (WIFSTOPPED(status) || WIFCONTINUED(status))
             waitpid(pid, &status, 0);
 
