@@ -83,6 +83,14 @@ void execute_command(char* cmd){
         while (WIFSTOPPED(status) || WIFCONTINUED(status))
             waitpid(pid, &status, 0);
 
+        getrusage(RUSAGE_CHILDREN, &r_end);
+        double rsys, rusr;
+        rsys = (r_end.ru_stime.tv_sec - r_start.ru_stime.tv_sec) +
+               (r_end.ru_stime.tv_usec - r_start.ru_stime.tv_usec)/1000000.0;
+        rusr = (r_end.ru_utime.tv_sec - r_start.ru_utime.tv_sec) +
+               (r_end.ru_utime.tv_usec - r_start.ru_utime.tv_usec)/1000000.0;
+        printf("[sys: %.4f, usr: %.4f]\n", rsys, rusr);
+
         if (WIFSIGNALED(status)){
             fprintf(stderr, "Command `%s` has been terminated by signal %d\n", cmd, WTERMSIG(status));
             exit(EXIT_FAILURE);
@@ -91,13 +99,7 @@ void execute_command(char* cmd){
             fprintf(stderr, "Command `%s` exited with status code %d\n", cmd, WEXITSTATUS(status));
             exit(WEXITSTATUS(status));
         }
-        getrusage(RUSAGE_CHILDREN, &r_end);
-        double rsys, rusr;
-        rsys = (r_end.ru_stime.tv_sec - r_start.ru_stime.tv_sec) +
-                (r_end.ru_stime.tv_usec - r_start.ru_stime.tv_usec)/1000000.0;
-        rusr = (r_end.ru_utime.tv_sec - r_start.ru_utime.tv_sec) +
-                (r_end.ru_utime.tv_usec - r_start.ru_utime.tv_usec)/1000000.0;
-        printf("[sys: %.4f, usr: %.4f]\n", rsys, rusr);
+
     }
 
 }
